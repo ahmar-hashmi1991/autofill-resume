@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Fill Form</title>
+  </head>
+  <body>
+    <h1>Fill Form with Extracted Information</h1>
+    <form action="/submit" method="POST">
+      <label for="name">Name:</label>
+      <input type="text" name="name" value="{{ name }}" /><br />
+      <label for="experience">Experience:</label>
+      <input type="text" name="experience" value="{{ experience }}" /><br />
+      <label for="skills">Skills:</label>
+      <input type="text" name="skills" value="{{ skills }}" /><br />
+      <label for="education">Education:</label>
+      <input type="text" name="education" value="{{ education }}" /><br />
+      <label for="contact">Contact:</label>
+      <input type="text" name="contact" value="{{ contact }}" /><br />
+      <input type="submit" value="Submit" />
+    </form>
+  </body>
+</html>
