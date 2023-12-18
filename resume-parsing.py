@@ -9,10 +9,7 @@ from openai import OpenAI
 
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("api_key"))
-
-# Set your OpenAI GPT API key
-
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
 
@@ -61,61 +58,65 @@ def upload_resume():
         extracted_text = extract_text_from_pdf(file_path)
 
         # Extract structured information using spaCy NLP
-        doc = nlp(extracted_text)
+        # doc = nlp(extracted_text)
         
-        # Create a prompt for generating content for a job application form
-        prompt = f"Generate content for a job application form based on the following resume:\n\n{extracted_text}\n\n"
+        prompt = f"""
+            Given a resume in PDF format, I need help extracting and categorizing information to autofill a resume form. The resume includes fields like name, experience, skills, education, and contact information. Here's a snippet of the resume text:
 
-        # Specify the fields you want to fill in the form
-        fields = ["Name", 
-        "Experience", 
-        "Skills", 
-        "Education", 
-        "Contact"]
-
-        name = "Ahmar"
-
-        experience = "7 years"
-
-        # Generate content for each field
-        for field in fields:
-            prompt += f"Field: {field}\n"
-            prompt += "Content:"
-
-            # Use the spaCy doc to provide context for the model
-        prompt += f" {doc.text}\n"
-        #print("prompt >> ", prompt)
-        #return
-
-        # Set the temperature and max tokens for GPT-3
-        temperature = 0.7
-        max_tokens = 150
-
-        # Split the text into chunks of 4096 tokens
-        chunk_size = 4096
-        chunks = [prompt[i:i+chunk_size] for i in range(0, len(prompt), chunk_size)]
-
-        generated_content = []
-
-        # Use the OpenAI GPT-3 API to generate content for the job application form
-        # Process each chunk
-        for i, chunk in enumerate(chunks):
-            prompt = chunk if i == 0 else ''  # Use only the first chunk as prompt, others as continuation
-    
-            response = client.completions.create(model="text-davinci-003",  # You may need to adjust the engine depending on your API version
+            Resume Text:
+            {extracted_text}
+            Extract the following information:
+            1. Name:
+            2. Experience:
+            3. Skills:
+            4. Education:
+            5. Contact:
+            """
+        response = client.completions.create(model="gpt-3.5-turbo-instruct",
             prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens)
-            
-            #print(response)
+            max_tokens=300)
 
-            # Extract the generated content from the response
-            generated_content.append(response.choices[0].text)
+        print("response >> ", response)
 
-        for i in range(len(generated_content)):
-            print(generated_content[i])
-        
-        return render_template('fill_form.html', name=name, experience=experience)
+        extracted_info = response.choices[0].text
+        print("extracted_info >> ", extracted_info)
+
+        # Assume 'extracted_info' contains the generated text from the GPT-3 response
+
+        # Split the generated text into lines
+        extracted_lines = extracted_info.split('\n')
+
+        # Initialize variables for storing categorized information
+        name = ""
+        experience = ""
+        skills = ""
+        education = ""
+        contact = ""
+
+        # Loop through each line and categorize information based on patterns or context
+        for line in extracted_lines:
+            if "Name:" in line:
+                name = line.split("Name:")[-1].strip()
+            elif "Experience:" in line:
+                experience = line.split("Experience:")[-1].strip()
+            elif "Skills:" in line:
+                skills = line.split("Skills:")[-1].strip()
+            elif "Education:" in line:
+                education = line.split("Education:")[-1].strip()
+            elif "Contact:" in line:
+                contact = line.split("Contact:")[-1].strip()
+
+        # Now, 'name', 'experience', 'skills', 'education', 'contact' variables contain categorized information
+        print("Name:", name)
+        print("Experience:", experience)
+        print("Skills:", skills)
+        print("Education:", education)
+        print("Contact:", contact)
+
+
+        # Now you can use these values to populate the respective fields or store them as needed
+        # For instance, in your Flask application, pass these values to the fill_form.html template
+        return render_template('fill_form.html', name=name, experience=experience, skills=skills, education=education, contact=contact)
 
     return 'Invalid file format. Please upload a PDF file.'
 
