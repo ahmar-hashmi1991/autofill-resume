@@ -66,11 +66,11 @@ def upload_resume():
             Resume Text:
             {extracted_text}
             Extract the following information:
-            1. Name:
-            2. Experience:
-            3. Skills:
-            4. Education:
-            5. Contact:
+                Name: [Enter Name Here]
+                Experience: [Enter Experience Here]
+                Skills: [Enter Skills Here]
+                Education: [Enter Education Here]
+                Contact: [Enter Contact Here]
             """
         response = client.completions.create(model="gpt-3.5-turbo-instruct",
             prompt=prompt,
@@ -86,32 +86,67 @@ def upload_resume():
         # Split the generated text into lines
         extracted_lines = extracted_info.split('\n')
 
-        # Initialize variables for storing categorized information
+        # # Initialize variables for storing categorized information
         name = ""
         experience = ""
         skills = ""
         education = ""
         contact = ""
 
-        # Loop through each line and categorize information based on patterns or context
-        for line in extracted_lines:
-            if "Name:" in line:
-                name = line.split("Name:")[-1].strip()
-            elif "Experience:" in line:
-                experience = line.split("Experience:")[-1].strip()
-            elif "Skills:" in line:
-                skills = line.split("Skills:")[-1].strip()
-            elif "Education:" in line:
-                education = line.split("Education:")[-1].strip()
-            elif "Contact:" in line:
-                contact = line.split("Contact:")[-1].strip()
+        # # Loop through each line and categorize information based on patterns or context
+        # for line in extracted_lines:
+        #     if "Name:" in line:
+        #         name = line.split("Name:")[-1].strip()
+        #     elif "Experience:" in line:
+        #         experience = line.split("Experience:")[-1].strip()
+        #     elif "Skills:" in line:
+        #         skills = line.split("Skills:")[-1].strip()
+        #     elif "Education:" in line:
+        #         education = line.split("Education:")[-1].strip()
+        #     elif "Contact:" in line:
+        #         contact = line.split("Contact:")[-1].strip()
 
-        # Now, 'name', 'experience', 'skills', 'education', 'contact' variables contain categorized information
-        print("Name:", name)
-        print("Experience:", experience)
-        print("Skills:", skills)
-        print("Education:", education)
-        print("Contact:", contact)
+        # # Now, 'name', 'experience', 'skills', 'education', 'contact' variables contain categorized information
+        # print("Name:", name)
+        # print("Experience:", experience)
+        # print("Skills:", skills)
+        # print("Education:", education)
+        # print("Contact:", contact)
+        # Initialize dictionaries to store categorized information
+        categorized_info = {
+            'Name': '',
+            'Experience': '',
+            'Skills': '',
+            'Education': '',
+            'Contact': ''
+        }
+
+        # Keep track of the current field and join multiline values
+        current_field = None
+        for line in extracted_lines:
+            line = line.strip()  # Remove leading/trailing whitespace
+
+            # Check if the line represents a field indicator
+            if any(field in line for field in categorized_info.keys()):
+                splitted_val = line.split(':')
+                current_field = splitted_val[0]
+                categorized_info[current_field] = splitted_val[1] if len(splitted_val) > 1 else '' # Initialize the field
+            else:
+                # Append line to the current field if it's not empty
+                if current_field and line:
+                    categorized_info[current_field] += line + '\n'  # Append the line
+        print(categorized_info)
+
+        # Filter out empty or whitespace lines and strip trailing newline characters
+        filtered_info = {key: value.strip() for key, value in categorized_info.items() if value.strip()}
+
+        print(filtered_info)
+        # Process 'filtered_info' for autofilling the resume form
+        name = filtered_info['Name']
+        experience = filtered_info['Experience']
+        skills = filtered_info['Skills']
+        education = filtered_info['Education']
+        contact = filtered_info['Contact']
 
 
         # Now you can use these values to populate the respective fields or store them as needed
